@@ -1,8 +1,14 @@
 // SecureBankingApp/src/pages/Dashboard.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '../context/UserContext'; // ✅ Import context
 
-export default function Dashboard({ signOut, user }) {
+export default function Dashboard() {
+  const { user, loadingUser, signOut } = useUser(); // ✅ Include signOut
+
+  if (loadingUser) return <div>Loading dashboard...</div>;
+  if (!user) return <div>Error: User not available.</div>; // Defensive fallback
+
   return (
     <div>
       <h1>Welcome, {user.username}</h1>

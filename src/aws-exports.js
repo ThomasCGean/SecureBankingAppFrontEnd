@@ -10,7 +10,15 @@ const awsExports = {
     redirectSignIn: 'http://localhost:5173/',
     redirectSignOut: 'http://localhost:5173/',
     responseType: 'code'
-  }
+  },
+  //  REST AWS API access
+  aws_cloud_logic_custom: [
+    {
+      name: 'FinalhttpAPILambda', // must match the apiName used in ProfileEdit.jsx
+      endpoint: 'https://pzbtz8dz14.execute-api.us-east-1.amazonaws.com',
+      region: 'us-east-1'
+    }
+  ]
 };
 
 export default awsExports;

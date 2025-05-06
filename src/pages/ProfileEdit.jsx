@@ -1,34 +1,47 @@
-// src/pages/ProfileEdit.jsx
-import { Amplify } from 'aws-amplify';
-import { API } from 'aws-amplify/api';
+// SecureBankingAppFrontEnd/src/pages/ProfileEdit.jsx
+import { useState, useEffect } from 'react';
+import { get, put } from 'aws-amplify/api';
+import { useUser } from '../context/UserContext';
 import awsExports from '../aws-exports';
-Amplify.configure(awsExports);
 
-
-export default function ProfileEdit({ user }) {
+export default function ProfileEdit() {
+  const { user, loadingUser } = useUser();
   const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
 
-  const userId = user?.attributes?.sub;
+  const userId = user?.username;
 
   useEffect(() => {
-    if (userId) {
+    console.log("[ProfileEdit] useEffect fired");
+    console.log("  - loadingUser:", loadingUser);
+    console.log("  - userId (from user.username):", userId);
+
+    if (!loadingUser && userId) {
       fetchProfile();
     }
-  }, [userId]);
+  }, [loadingUser, userId]);
 
   async function fetchProfile() {
     try {
-      const response = await API.get('SecureBankingAPI', '/profile', {
-        queryStringParameters: { user_id: userId }
+      console.log("[ProfileEdit] Fetching profile for userId:", userId);
+
+      const restOperation = get({
+        apiName: 'FinalhttpAPILambda',
+        path: '/profile',
       });
-      setProfile(response);
-      setFormData(response);
+
+      const response = await restOperation.response;
+      const data = await response.body.json();
+
+      console.log("[ProfileEdit] API Response Data:", data);
+
+      setProfile(data);
+      setFormData(data);
       setLoading(false);
     } catch (err) {
-      console.error('Failed to load profile:', err);
+      console.error("[ProfileEdit] Failed to load profile:", err);
       setMessage('Error loading profile.');
       setLoading(false);
     }
@@ -37,12 +50,20 @@ export default function ProfileEdit({ user }) {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const response = await API.put('SecureBankingAPI', '/profile', {
-        body: formData
+      console.log("[ProfileEdit] Submitting updated profile data:", formData);
+
+      const restOperation = put({
+        apiName: 'FinalhttpAPILambda',
+        path: '/profile',
+        options: {
+          body: formData
+        }
       });
+
+      await restOperation.response;
       setMessage('Profile updated successfully.');
     } catch (err) {
-      console.error('Failed to update profile:', err);
+      console.error("[ProfileEdit] Failed to update profile:", err);
       setMessage('Error updating profile.');
     }
   }
@@ -52,7 +73,9 @@ export default function ProfileEdit({ user }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   }
 
-  if (loading) return <div>Loading profile...</div>;
+  if (loadingUser || loading) {
+    return <div>Loading profile...</div>;
+  }
 
   return (
     <div className="p-4">

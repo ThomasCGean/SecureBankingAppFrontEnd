@@ -11,6 +11,7 @@ import StatementView from './pages/StatementView';
 import ProfileEdit from './pages/ProfileEdit';
 import TransferForm from './pages/TransferForm';
 import TransactionHistory from './pages/TransactionHistory';
+import { UserProvider } from './context/UserContext'; // ✅ Import context
 
 Amplify.configure(awsExports);
 
@@ -18,15 +19,18 @@ export default function App() {
   return (
     <Authenticator loginMechanisms={["username"]}>
       {({ signOut, user }) => (
-        <Router>
-          <Routes>
-            <Route path="/" element={<Dashboard signOut={signOut} user={user} />} />
-            <Route path="/statement" element={<StatementView user={user} />} />
-            <Route path="/profile" element={<ProfileEdit user={user} />} />
-            <Route path="/transfer" element={<TransferForm user={user} />} />
-            <Route path="/transactions" element={<TransactionHistory user={user} />} />
-          </Routes>
-        </Router>
+        // ✅ Pass signOut into context
+        <UserProvider user={user} signOut={signOut}>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/statement" element={<StatementView />} />
+              <Route path="/profile" element={<ProfileEdit />} />
+              <Route path="/transfer" element={<TransferForm />} />
+              <Route path="/transactions" element={<TransactionHistory />} />
+            </Routes>
+          </Router>
+        </UserProvider>
       )}
     </Authenticator>
   );
